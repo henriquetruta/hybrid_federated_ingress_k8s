@@ -1,0 +1,12 @@
+apiVersion: v1
+data:
+  provider-uid: fdd8dffe42bd6b69
+  uid: 796f17241368e171
+kind: ConfigMap
+metadata:
+  creationTimestamp: 2017-07-12T14:48:33Z
+  name: ingress-uid
+  namespace: kube-system
+  resourceVersion: "1313"
+  selfLink: /api/v1/namespaces/kube-system/configmaps/ingress-uid
+  uid: 2d50cd8f-6711-11e7-ad03-42010a8e01ff

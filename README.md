@@ -34,9 +34,19 @@ gcloud container clusters create gke \
 * Run it
 * Select kubernetes canonical, put password, deploy and wait
 
+### Create Azure Cluster
+
+* Setup your azure credentials and the `az` CLI tool
+* Create the cluster with the following commands:
+
+```bash
+az group create --name k8s --location eastus
+az acs create --orchestrator-type=kubernetes --resource-group k8s --name=azure --agent-count 1
+```
+
 ### Get your credentials
 
-AWS:
+#### AWS
 
 ```bash
 juju scp kubernetes-master/0:/home/ubuntu/config ./config-aws
@@ -44,28 +54,46 @@ juju scp kubernetes-master/0:/home/ubuntu/config ./config-aws
 
 This command will download the file `config-aws` with your AWS credentials.
 
-GKE, go into your Dashboard, in the Container Engine page click in `Connect` on
+#### GKE
+
+Go into your Dashboard, in the Container Engine page click in `Connect` on
 your cluster. Then, copy the first command. It should look like:
 
 ```bash
+# Gets the credentials and copies them to ~/.kube/config
 gcloud container clusters get-credentials gke --zone us-east1-b --project fed
 
 ```
 
-Then, merge them in your local kubeconfig file, having two contexts called just
-`gke` and `aws`.
+#### Azure
+
+```bash
+# Gets the credentials in similar way to gcloud
+az acs kubernetes get-credentials --resource-group=k8s --name=azure
+```
+
+#### Merge them all
+
+Then, merge them in your local kubeconfig file, having contexts called just
+`gke`, `azure` and `aws`.
 
 ### Label your nodes
+
+If you have contexts called just `gke`, `aws` and `azure`, you can run the `labeling.sh` file.
+
+```bash
+source labeling.sh
+```
 
 ```bash
 for node in $(kubectl get nodes --context=aws -o json | jq --raw-output '.items[].metadata.name')
 do
   kubectl --context=aws label nodes \
     ${node} \
-    failure-domain.beta.kubernetes.io/region=us-west-2
+    failure-domain.beta.kubernetes.io/region=eu-west-2
   kubectl --context=aws label nodes \
     ${node} \
-    failure-domain.beta.kubernetes.io/zone=us-west-2a
+    failure-domain.beta.kubernetes.io/zone=eu-west-2a
 done
 
 for node in $(kubectl get nodes --context=gke -o json | jq --raw-output '.items[].metadata.name')
@@ -125,6 +153,14 @@ cluster "gke" created
 kubectl --context=gke create clusterrolebinding federation-controller-manager:fed-aws-gke  \
 --serviceaccount=federation-system:aws-gke --clusterrole=federation-controller-manager:fed-gke-gke 
 
+kubectl create clusterrolebinding permissive-binding \
+  --clusterrole=cluster-admin \
+  --user=admin \
+  --user=kubelet \
+  --user=kubeconfig \
+  --user=client \
+  --group=system:serviceaccounts
+
 # add AWS
 kubefed join aws --host-cluster-context=gke
 cluster "aws" created
@@ -134,7 +170,7 @@ cluster "aws" created
 ## Creating the DNS configmap
 
 ```bash
-kubeclt create -f cm_dns.yaml --context=fed
+kubectl create -f cm_dns.yaml --context=fed
 ```
 
 Now, you can run a Federated Application.

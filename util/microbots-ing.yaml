@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+ annotations:
+  first-cluster: gke
+ name: microbot1
+spec:
+ rules:
+   - host: microbot.henriquetruta.com
+     http:
+       paths:
+         - path: /
+           backend:
+             serviceName: microbot
+             servicePort: 80

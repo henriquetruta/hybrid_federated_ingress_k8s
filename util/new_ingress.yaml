@@ -1,0 +1,11 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: microbotlb
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "k-ingress"
+    first-cluster: gke
+spec:
+  backend:
+    serviceName: microbotlb
+    servicePort: 80

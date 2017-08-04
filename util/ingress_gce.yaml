@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.federation.kubernetes.io/first-cluster: gke
+    ingress.kubernetes.io/backends: '{"k8s-be-0--03f35800d0816db4":"Unknown","k8s-be-30398--03f35800d0816db4":"Unknown"}'
+    ingress.kubernetes.io/forwarding-rule: k8s-fw-default-microbot1--03f35800d0816db4
+    ingress.kubernetes.io/target-proxy: k8s-tp-default-microbot1--03f35800d0816db4
+    ingress.kubernetes.io/url-map: k8s-um-default-microbot1--03f35800d0816db4
+  creationTimestamp: 2017-07-14T20:36:18Z
+  generation: 1
+  name: microbot1
+  namespace: default
+  resourceVersion: "124486"
+  selfLink: /apis/extensions/v1beta1/namespaces/default/ingresses/microbot1
+  uid: 16d2081c-68d4-11e7-988c-42010a8e0168
+spec:
+  rules:
+  - host: microbot.henriquetruta.com
+    http:
+      paths:
+      - backend:
+          serviceName: microbot
+          servicePort: 80
+        path: /
+status:
+  loadBalancer:
+    ingress:
+    - ip: 35.190.62.40
