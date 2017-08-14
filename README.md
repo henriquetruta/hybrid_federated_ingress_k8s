@@ -72,6 +72,16 @@ gcloud container clusters get-credentials gke --zone us-east1-b --project fed
 az acs kubernetes get-credentials --resource-group=k8s --name=azure
 ```
 
+At the momment I'm writing this, Azure is only compatible with k8s 1.6, and by default it comes with RBAC disabled. You must enable it before joining the Azure cluster. The easiest way to do it is SSH to the Master node with user `azureuser`. Then, edit the file in `/etc/kubernetes/manifests/kube-apiserver.yaml`.
+
+At the `command` section of the spec, add (or update) the following line to activate RBAC:
+
+```bash
+- --authorization-mode=RBAC
+```
+
+Then, restart kubelet doing `systemctl restart kubelet.service`.
+
 #### Merge them all
 
 Then, merge them in your local kubeconfig file, having contexts called just
@@ -105,26 +115,6 @@ do
     ${node} \
     failure-domain.beta.kubernetes.io/zone=us-east1
 done
-```
-
-### Making sure clusters share the same GLBC
-
-```bash
-# Delete old ones
-kubectl --context aws delete \
-    rc/default-http-backend \
-    rc/nginx-ingress-controller \
-    svc/default-http-backend
-
-# Take the ones currently used in GKE and save them
-kubectl get deploy --context=gke -n kube-system l7-default-backend -o yaml > deploy_l7_default_backend.yaml
-kubectl get svc --context=gke -n kube-system default-http-backend -o yaml > svc_default_http_backend.yaml
-kubectl get cm --context=gke -n kube-system ingress-uid -o yaml > cm_ingress_uid.yaml
-
-  # Replace by new ones taken from GKE
-kubectl --context aws create -f deploy_l7_default_backend.yaml
-kubectl --context aws create -f svc_default_http_backend.yaml
-kubectl --context aws create -f cm_ingress_uid.yaml
 ```
 
 ## Initializing the Federation
@@ -174,6 +164,8 @@ kubectl create -f cm_dns.yaml --context=fed
 ```
 
 Now, you can run a Federated Application.
+
+## Running an application
 
 ## References
 
